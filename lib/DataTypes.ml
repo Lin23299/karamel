@@ -330,7 +330,7 @@ let allocate_tag (enums: ((ident * Z.t option) list, lident) Hashtbl.t) (tag_rem
      But, we hash-cons them without the prefix, on the basis that monomorphized instances of the
      same data type need to share the same type for the tag rather than duplicate the tag type in
      every module. *)
-  let tags_with_prefix = List.map (fun (tag, value) -> ((fst preferred_tag_lid, tag), value)) tags_without_prefix in
+  let tags_with_prefix = List.map (fun (tag, value) -> ((fst preferred_tag_lid, snd lid ^ "_" ^ tag), value)) tags_without_prefix in
   match Hashtbl.find enums tags_without_prefix with
   | tag_lid ->
       (* KPrint.bprintf "for tags %s, found %a\n" *)
@@ -1402,8 +1402,14 @@ end
 let everything files =
   let map = build_scheme_map files in
   let files = (compile_simple_matches map)#visit_files () files in
+
+  PPrint.(Print.(print (PrintAst.print_files files ^^ hardline)));
   let files = if Options.rust () then remove_one_branch_matches#visit_files () files else (compile_all_matches map)#visit_files () files in
+
+  PPrint.(Print.(print (PrintAst.print_files files ^^ hardline)));
+  
   let files = remove_non_scalar_casts#visit_files () files in
+  PPrint.(Print.(print (PrintAst.print_files files ^^ hardline)));
   let files = remove_empty_structs files in
   map, files
 
